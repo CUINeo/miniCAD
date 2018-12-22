@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.*;
 import java.util.ArrayList;
 
 class Controller extends JFrame {
@@ -405,13 +406,71 @@ class Controller extends JFrame {
         shape.point2 = point2;
     }
 
-    // Open from a CAD file
+    // Open from file
     private void open() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
 
+        ArrayList<Shape> tempShapes;
+        JFileChooser openchooser = new JFileChooser();
+        int returnVal = openchooser.showOpenDialog(null);
+
+        if(returnVal == JFileChooser.APPROVE_OPTION) {
+            String path = openchooser.getSelectedFile().getPath();
+
+            try {
+                System.out.println(path);
+                ObjectInputStream ois = new ObjectInputStream(new FileInputStream(path));
+                tempShapes = (ArrayList<Shape>)ois.readObject();
+                ois.close();
+            }
+            catch(IOException | ClassNotFoundException e1) {
+                e1.printStackTrace();
+                JOptionPane.showMessageDialog(null,"Open filed",
+                        "Error",JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            JOptionPane.showMessageDialog(null,"Open succeeded",
+                    "Message",JOptionPane.INFORMATION_MESSAGE);
+
+            model.shapes = tempShapes;
+            repaint();
+        }
     }
 
-    // Save to a CAD file
+    // Save to file
     private void save() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        }
 
+        JFileChooser savechooser = new JFileChooser();
+        int returnVal = savechooser.showSaveDialog(null);
+
+        if(returnVal == JFileChooser.APPROVE_OPTION)  {
+            String path = savechooser.getSelectedFile().getPath();
+
+            try {
+                ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(path));
+                oos.writeObject(model.shapes);
+                oos.close();
+            }
+            catch(IOException e1) {
+                e1.printStackTrace();
+                JOptionPane.showMessageDialog(null,"Save filed",
+                        "Error",JOptionPane.ERROR_MESSAGE);
+            }
+
+            JOptionPane.showMessageDialog(null,"Save succeeded",
+                    "Message",JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 }
