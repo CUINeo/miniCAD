@@ -12,7 +12,6 @@ class Controller extends JFrame {
     private String curShape;
     private Point point1;
     private Point point2;
-    private int selectedShapeIndex = -1;
 
     private int prex;
     private int prey;
@@ -35,17 +34,62 @@ class Controller extends JFrame {
 
         // Add listener for draw panel
         drawPanel() {
+            this.setFocusable(true);
+            requestFocusInWindow();
+
+            addKeyListener(new KeyListener() {
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    int key = e.getKeyCode();
+                    Shape shape = view.getSelectedShape(model);
+//                    System.out.println(key);
+
+                    if (shape != null) {
+                        // A shape is selected
+                        if (key == KeyEvent.VK_UP && shape.thickness > 1) {
+                            // Change thinner
+                            shape.setThickness(shape.thickness + 1);
+                        }
+                        else if (key == KeyEvent.VK_DOWN) {
+                            // Change thicker
+                            shape.setThickness(shape.thickness - 1);
+                        }
+                        else if (key == KeyEvent.VK_BACK_SPACE || key == KeyEvent.VK_DELETE) {
+                            // Delete shape
+                            model.shapes.remove(shape);
+                        }
+                        else if (key == KeyEvent.VK_MINUS) {
+                            // Change smaller
+                            shape.changeBiggerOrSmaller(-1);
+                        }
+                        else if (key == KeyEvent.VK_EQUALS) {
+                            // Change bigger
+                            shape.changeBiggerOrSmaller(1);
+                        }
+
+                        repaint();
+                    }
+                }
+
+                @Override
+                public void keyTyped(KeyEvent e) { }
+
+                @Override
+                public void keyReleased(KeyEvent e) { }
+            });
+
             addMouseListener(new MouseListener() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
-//                    System.out.println(state);
-//                    System.out.println(selectedShapeIndex);
+                    // Get focus
+                    requestFocusInWindow();
 
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         if (state instanceof Idle) {
                             // Left click, select
-                            if (selectedShapeIndex != -1) {
-                                Shape shape = model.shapes.get(selectedShapeIndex);
+                            Shape shape = view.getSelectedShape(model);
+
+                            if (shape != null) {
                                 if (shape instanceof Text) {
                                     // Reset Text
                                     String content = JOptionPane.showInputDialog("Please input your text:");
@@ -59,17 +103,19 @@ class Controller extends JFrame {
                             Point point = new Point(e.getX(), e.getY());
 
                             for (int i = 0; i < model.shapes.size(); i++) {
-
                                 if (model.shapes.get(i).isSelected(point)) {
-                                    // Shape i is selected
-                                    selectedShapeIndex = i;
+                                    model.shapes.get(i).status = 2;
                                     flag = true;
                                     break;
                                 }
                             }
 
-                            if (!flag)
-                                selectedShapeIndex = -1;
+                            if (!flag) {
+                                for (Shape s : model.shapes)
+                                    s.status = 0;
+                            }
+
+                            repaint();
                         }
 
                         else if (state instanceof TextState) {
@@ -189,7 +235,9 @@ class Controller extends JFrame {
 
                     if (e.getButton() == MouseEvent.BUTTON3) {
                         // Right click, become Idle
-                        selectedShapeIndex = -1;
+                        for (Shape shape : model.shapes)
+                            shape.status = 0;
+
                         state = state.MouseRight();
                     }
                 }
@@ -211,7 +259,7 @@ class Controller extends JFrame {
                         }
 
                         // Dragging shapes
-                        if (state instanceof Idle && selectedShapeIndex != -1) {
+                        if (state instanceof Idle && view.getSelectedShape(model) != null) {
                             prex = e.getX();
                             prey = e.getY();
                         }
@@ -255,7 +303,9 @@ class Controller extends JFrame {
                             repaint();
                         }
 
-                        if (state instanceof Idle && selectedShapeIndex != -1) {
+                        Shape shape = view.getSelectedShape(model);
+
+                        if (state instanceof Idle && shape != null) {
                             // Dragging shapes
                             int x = e.getX();
                             int y = e.getY();
@@ -263,13 +313,8 @@ class Controller extends JFrame {
                             int x_dis = x - prex;
                             int y_dis = y - prey;
 
-                            Shape shape = model.shapes.get(selectedShapeIndex);
-                            shape.setPoint1(new Point(point1.x + x_dis, point1.y + y_dis));
-                            shape.setPoint2(new Point(point2.x + x_dis, point2.y + y_dis));
-
-                            model.shapes.remove(selectedShapeIndex);
-                            model.shapes.add(shape);
-                            selectedShapeIndex = model.shapes.indexOf(shape);
+                            shape.point1 = new Point(point1.x + x_dis, point1.y + y_dis);
+                            shape.point2 = new Point(point2.x + x_dis, point2.y + y_dis);
 
                             repaint();
                         }
@@ -277,7 +322,20 @@ class Controller extends JFrame {
                 }
 
                 @Override
-                public void mouseMoved(MouseEvent e) { }
+                public void mouseMoved(MouseEvent e) {
+                    if (state instanceof Idle) {
+                        Point point = new Point(e.getX(), e.getY());
+
+                        for (int i = 0; i < model.shapes.size(); i++) {
+                            if (model.shapes.get(i).isSelected(point)) {
+                                model.shapes.get(i).status = 1;
+                            } else if (model.shapes.get(i).status == 1) {
+                                model.shapes.get(i).status = 0;
+                            }
+                        }
+                        repaint();
+                    }
+                }
             });
         }
     }
@@ -356,62 +414,16 @@ class Controller extends JFrame {
         add(toolpanel, BorderLayout.EAST);
         add(drawpanel, BorderLayout.CENTER);
 
-        // Add key listener
-        addKeyListener(new KeyListener() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                int key = e.getKeyCode();
-
-                if (selectedShapeIndex != -1) {
-                    Shape shape = model.shapes.get(selectedShapeIndex);
-
-                    // A shape is selected
-                    if (key == KeyEvent.VK_UP && shape.thickness > 1) {
-                        // Change thinner
-                        shape.setThickness(shape.thickness - 1);
-                    }
-                    else if (key == KeyEvent.VK_DOWN) {
-                        // Change thicker
-                        shape.setThickness(shape.thickness + 1);
-                    }
-                    else if (key == KeyEvent.VK_BACK_SPACE || key == KeyEvent.VK_DELETE) {
-                        // Delete shape
-                        model.shapes.remove(selectedShapeIndex);
-                        selectedShapeIndex = -1;
-                    }
-                    else if (key == KeyEvent.VK_MINUS) {
-                        // Change smaller
-                        shape.changeBiggerOrSmaller(-1);
-                    }
-                    else if (key == KeyEvent.VK_EQUALS) {
-                        // Change bigger
-                        shape.changeBiggerOrSmaller(1);
-                    }
-
-                    if (selectedShapeIndex != -1) {
-                        // shape not deleted
-                        model.shapes.remove(selectedShapeIndex);
-                        model.add(shape);
-                        selectedShapeIndex = model.shapes.indexOf(shape);
-                    }
-
-                    repaint();
-                }
-            }
-
-            @Override
-            public void keyTyped(KeyEvent e) { }
-
-            @Override
-            public void keyReleased(KeyEvent e) { }
-        });
-
         // Initialize the frame
+        pack();
         setVisible(true);
         setBackground(Color.WHITE);
         setSize(600, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        // Request focus for drawpanel
+        drawpanel.requestFocusInWindow();
     }
 
     // New a specified JButton
@@ -478,11 +490,11 @@ class Controller extends JFrame {
         button.addActionListener(e -> {
             // Whether a object is selected
             if (state instanceof Idle) {
-                if (selectedShapeIndex != -1) {
+                Shape shape = view.getSelectedShape(model);
+
+                if (shape != null) {
                     // Change color
-                    Shape shape = model.shapes.get(selectedShapeIndex);
                     shape.setColor(color);
-                    model.shapes.set(selectedShapeIndex, shape);
                     repaint();
                 }
             }

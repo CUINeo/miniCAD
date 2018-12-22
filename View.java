@@ -7,4 +7,14 @@ class View {
             s.Draw(graphics);
         }
     }
+
+    // Get the first selected shape
+    Shape getSelectedShape(Model model) {
+        for (Shape s : model.shapes) {
+            if (s.status != 0)
+                return s;
+        }
+
+        return null;
+    }
 }

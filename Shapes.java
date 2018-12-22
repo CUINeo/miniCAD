@@ -16,20 +16,15 @@ abstract class Shape implements Serializable {
     Point point2;
     Color color;
     int thickness;
+    int status;
 
     Shape(Point point1, Point point2, Color color, int thickness) {
+        // Not selected
+        status = 0;
         this.point1 = new Point(point1.x, point1.y);
         this.point2 = new Point(point2.x, point2.y);
         this.color = color;
         this.thickness = thickness;
-    }
-
-    void setPoint1(Point p) {
-        this.point1 = new Point(p.x, p.y);
-    }
-
-    void setPoint2(Point p) {
-        this.point2 = new Point(p.x, p.y);
     }
 
     void setColor(Color color) {
@@ -146,10 +141,22 @@ class Line extends Shape {
 
     void Draw(Graphics g) {
         Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
 
-        g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+        if (status == 0) {
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(thickness));
+            g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+        }
+        else if (status == 1 || status == 2) {
+            g2.setStroke(new BasicStroke(thickness + 1));
+
+            g2.setColor(color);
+            g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+
+            g2.setColor(Color.RED);
+            g2.drawLine(point1.x, point1.y, point1.x, point1.y);
+            g2.drawLine(point2.x, point2.y, point2.x, point2.y);
+        }
     }
 
     @Override
@@ -186,12 +193,30 @@ class Rectangle extends Shape {
     void Draw(Graphics g) {
         Point p1 = rectify()[0];
         Point p2 = rectify()[1];
-
         Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
 
-        g2.drawRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        if (status == 0) {
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(thickness));
+            g2.drawRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        }
+        else if (status == 1 || status == 2) {
+            g2.setStroke(new BasicStroke(thickness + 1));
+
+            g2.setColor(color);
+            g2.drawRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+            g2.setColor(Color.RED);
+            g2.drawLine(point1.x, point1.y, point1.x, point1.y);
+            g2.drawLine(point2.x, point2.y, point2.x, point2.y);
+
+            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(1));
+            g2.drawLine(point1.x, point1.y, point1.x, point2.y);
+            g2.drawLine(point1.x, point1.y, point2.x, point1.y);
+            g2.drawLine(point1.x, point2.y, point2.x, point2.y);
+            g2.drawLine(point2.x, point1.y, point2.x, point2.y);
+        }
     }
 
     @Override
@@ -210,12 +235,30 @@ class Ellipse extends Shape {
     void Draw(Graphics g) {
         Point p1 = rectify()[0];
         Point p2 = rectify()[1];
-
         Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
 
-        g2.drawOval(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+        if (status == 0) {
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(thickness));
+            g2.drawOval(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+        }
+        else if (status == 1 || status == 2) {
+            g2.setStroke(new BasicStroke(thickness + 1));
+
+            g2.setColor(color);
+            g2.drawOval(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+
+            g2.setColor(Color.RED);
+            g2.drawLine(point1.x, point1.y, point1.x, point1.y);
+            g2.drawLine(point2.x, point2.y, point2.x, point2.y);
+
+            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(1));
+            g2.drawLine(point1.x, point1.y, point1.x, point2.y);
+            g2.drawLine(point1.x, point1.y, point2.x, point1.y);
+            g2.drawLine(point1.x, point2.y, point2.x, point2.y);
+            g2.drawLine(point2.x, point1.y, point2.x, point2.y);
+        }
     }
 
     @Override
@@ -234,12 +277,30 @@ class FilledRectangle extends Shape {
     void Draw(Graphics g) {
         Point p1 = rectify()[0];
         Point p2 = rectify()[1];
-
         Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
 
-        g2.fillRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+        if (status == 0) {
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(thickness));
+            g2.fillRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+        }
+        else if (status == 1 || status == 2) {
+            g2.setStroke(new BasicStroke(thickness + 1));
+
+            g2.setColor(color);
+            g2.fillRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+
+            g2.setColor(Color.RED);
+            g2.drawLine(point1.x, point1.y, point1.x, point1.y);
+            g2.drawLine(point2.x, point2.y, point2.x, point2.y);
+
+            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(1));
+            g2.drawLine(point1.x, point1.y, point1.x, point2.y);
+            g2.drawLine(point1.x, point1.y, point2.x, point1.y);
+            g2.drawLine(point1.x, point2.y, point2.x, point2.y);
+            g2.drawLine(point2.x, point1.y, point2.x, point2.y);
+        }
     }
 
     @Override
@@ -258,12 +319,30 @@ class FilledEllipse extends Shape {
     void Draw(Graphics g) {
         Point p1 = rectify()[0];
         Point p2 = rectify()[1];
-
         Graphics2D g2 = (Graphics2D)g;
-        g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
 
-        g2.fillOval(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+        if (status == 0) {
+            g2.setColor(color);
+            g2.setStroke(new BasicStroke(thickness));
+            g2.fillOval(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+        }
+        else if (status == 1 || status == 2) {
+            g2.setStroke(new BasicStroke(thickness + 1));
+
+            g2.setColor(color);
+            g2.fillOval(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+
+            g2.setColor(Color.RED);
+            g2.drawLine(point1.x, point1.y, point1.x, point1.y);
+            g2.drawLine(point2.x, point2.y, point2.x, point2.y);
+
+            g2.setColor(Color.RED);
+            g2.setStroke(new BasicStroke(1));
+            g2.drawLine(point1.x, point1.y, point1.x, point2.y);
+            g2.drawLine(point1.x, point1.y, point2.x, point1.y);
+            g2.drawLine(point1.x, point2.y, point2.x, point2.y);
+            g2.drawLine(point2.x, point1.y, point2.x, point2.y);
+        }
     }
 
     @Override
@@ -289,8 +368,13 @@ class Text extends Shape {
     void Draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
+
         g.setFont(new Font("楷体", Font.PLAIN,Math.abs(point1.y-point2.y)/2));
+
+        if (status == 0)
+            g2.setStroke(new BasicStroke(thickness));
+        else if (status == 1 || status == 2)
+            g2.setStroke(new BasicStroke(thickness + 1));
 
         g2.drawString(content, point1.x, point1.y);
     }
