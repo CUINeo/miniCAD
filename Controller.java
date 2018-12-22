@@ -313,8 +313,10 @@ class Controller extends JFrame {
                             int x_dis = x - prex;
                             int y_dis = y - prey;
 
-                            shape.point1 = new Point(point1.x + x_dis, point1.y + y_dis);
-                            shape.point2 = new Point(point2.x + x_dis, point2.y + y_dis);
+                            if (point1 != null && point2 != null) {
+                                shape.point1 = new Point(point1.x + x_dis, point1.y + y_dis);
+                                shape.point2 = new Point(point2.x + x_dis, point2.y + y_dis);
+                            }
 
                             repaint();
                         }
@@ -323,16 +325,33 @@ class Controller extends JFrame {
 
                 @Override
                 public void mouseMoved(MouseEvent e) {
-                    if (state instanceof Idle) {
+                    boolean flag = false;
+
+                    for (Shape s : model.shapes) {
+                        if (s.status == 2) {
+                            flag = true;
+                            break;
+                        }
+                    }
+
+                    if (state instanceof Idle && !flag) {
+                        // No status 2
                         Point point = new Point(e.getX(), e.getY());
 
-                        for (int i = 0; i < model.shapes.size(); i++) {
-                            if (model.shapes.get(i).isSelected(point)) {
-                                model.shapes.get(i).status = 1;
-                            } else if (model.shapes.get(i).status == 1) {
-                                model.shapes.get(i).status = 0;
+                        for (Shape shape : model.shapes) {
+                            if (shape.status == 2)
+                                // Choosen
+                                continue;
+
+                            if (shape.isSelected(point)) {
+                                // On it
+                                shape.status = 1;
+                            } else {
+                                // Not on it
+                                shape.status = 0;
                             }
                         }
+
                         repaint();
                     }
                 }

@@ -406,11 +406,29 @@ class BrokenLine extends Shape {
     void Draw(Graphics g) {
         Graphics2D g2 = (Graphics2D)g;
         g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
+
+        if (status == 0)
+            g2.setStroke(new BasicStroke(thickness));
+        else if (status == 1 || status == 2)
+            g2.setStroke(new BasicStroke(thickness + 1));
 
         for (int i = 0; i < points.length; i++)
             if (i + 1 < points.length)
                 myDrawLine(points[i], points[i+1], g2);
+    }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+        for (int i = 0; i < points.length - 1; i++) {
+            Point p1 = points[i];
+            Point p2 = points[i+1];
+
+            if ((p1.y - p2.y) / (p1.x - p2.x) == (p1.y - p.y) / (p1.x - p.x))
+                return true;
+        }
+
+        return false;
     }
 }
 
@@ -425,7 +443,11 @@ class Polygon extends Shape {
     void Draw(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
         g2.setColor(color);
-        g2.setStroke(new BasicStroke(thickness));
+
+        if (status == 0)
+            g2.setStroke(new BasicStroke(thickness));
+        else if (status == 1 || status == 2)
+            g2.setStroke(new BasicStroke(thickness + 1));
 
         int[] xPoints = new int[points.length];
         int[] yPoints = new int[points.length];
@@ -436,5 +458,19 @@ class Polygon extends Shape {
         }
 
         g2.drawPolygon(xPoints, yPoints, points.length);
+    }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+        for (int i = 0; i < points.length - 1; i++) {
+            Point p1 = points[i];
+            Point p2 = points[i+1];
+
+            if ((p1.y - p2.y) / (p1.x - p2.x) == (p1.y - p.y) / (p1.x - p.x))
+                return true;
+        }
+
+        return false;
     }
 }
