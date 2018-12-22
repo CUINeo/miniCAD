@@ -51,6 +51,91 @@ abstract class Shape implements Serializable {
             return new Point[] {new Point(point1.x, point2.y), new Point(point2.x, point1.y)};
     }
 
+    boolean isSelected(Point p)
+    {
+        return false;
+    }
+
+    // Changer bigger or smaller by crement percent
+    void changeBiggerOrSmaller(int crement)
+    {
+        int total;
+        double tx, ty;
+
+        if (point1.x >= point2.x && point1.y >= point2.y) {
+            total = point1.x - point2.x + point1.y - point2.y;
+            tx = (double)(point1.x - point2.x) / total;
+            ty = (double)(point1.y - point2.y) / total;
+
+            if(crement > 0) {
+                point1.x += tx*10;
+                point1.y += ty*10;
+                point2.x -= tx*10;
+                point2.y -= ty*10;
+            }
+            else {
+                point1.x -= tx*10;
+                point1.y -= ty*10;
+                point2.x += tx*10;
+                point2.y += ty*10;
+            }
+        }
+        else if (point2.x > point1.x && point2.y > point1.y) {
+            total = point2.x - point1.x + point2.y - point1.y;
+            tx = (double)(point2.x - point1.x) / total;
+            ty = (double)(point2.y - point1.y) / total;
+
+            if(crement > 0) {
+                point2.x += tx*10;
+                point2.y += ty*10;
+                point1.x -= tx*10;
+                point1.y -= ty*10;
+            }
+            else {
+                point2.x -= tx*10;
+                point2.y -= ty*10;
+                point1.x += tx*10;
+                point1.y += ty*10;
+            }
+        }
+        else if (point2.x > point1.x && point2.y < point1.y) {
+            total = point2.x - point1.x + point1.y - point2.y;
+            tx = (double)(point2.x-point1.x) / total;
+            ty = (double)(point1.y-point2.y) / total;
+
+            if (crement > 0) {
+                point2.x += tx*10;
+                point2.y -= ty*10;
+                point1.x -= tx*10;
+                point1.y += ty*10;
+            }
+            else {
+                point2.x -= tx*10;
+                point2.y += ty*10;
+                point1.x += tx*10;
+                point1.y -= ty*10;
+            }
+        }
+        else {
+            total = point1.x - point2.x + point2.y - point1.y;
+            tx = (double)(point1.x-point2.x) / total;
+            ty = (double)(point2.y-point1.y) / total;
+
+            if (crement > 0) {
+                point2.x -= tx*10;
+                point2.y += ty*10;
+                point1.x += tx*10;
+                point1.y -= ty*10;
+            }
+            else {
+                point2.x += tx*10;
+                point2.y -= ty*10;
+                point1.x -= tx*10;
+                point1.y += ty*10;
+            }
+        }
+    }
+
     abstract void Draw(Graphics g);
 }
 
@@ -64,9 +149,32 @@ class Line extends Shape {
         g2.setColor(color);
         g2.setStroke(new BasicStroke(thickness));
 
-//        System.out.println(point1.x + " " + point1.y + " " + point2.x + " " + point2.y + " " + color + " " + thickness);
-
         g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+    }
+
+    @Override
+    boolean isSelected(Point p)
+    {
+        if (point1.x > point2.x && point1.y > point2.y)
+        {
+            return (p.x>point2.x&&p.x<(point1.x+point2.x)/2&&p.y>point2.y&&p.y<(point1.y+point2.y)/2)||
+                    (p.x<point1.x&&p.x>(point1.x+point2.x)/2&&p.y<point1.y&&p.y>(point1.y+point2.y)/2);
+        }
+        else if (point2.x > point1.x && point2.y > point1.y)
+        {
+            return (p.x>point1.x&&p.x<(point1.x+point2.x)/2&&p.y>point1.y&&p.y<(point1.y+point2.y)/2)||
+                    (p.x<point2.x&&p.x>(point1.x+point2.x)/2&&p.y<point2.y&&p.y>(point1.y+point2.y)/2);
+        }
+        else if (point2.x > point1.x && point2.y < point1.y)
+        {
+            return (p.x>point1.x&&p.x<(point1.x+point2.x)/2&&p.y<point1.y&&p.y>(point1.y+point2.y)/2)||
+                    (p.x<point2.x&&p.x>(point1.x+point2.x)/2&&p.y>point2.y&&p.y<(point1.y+point2.y)/2);
+        }
+        else
+        {
+            return (p.x>point2.x&&p.x<(point1.x+point2.x)/2&&p.y<point2.y&&p.y>(point1.y+point2.y)/2)||
+                    (p.x<point1.x&&p.x>(point1.x+point2.x)/2&&p.y>point1.y&&p.y<(point1.y+point2.y)/2);
+        }
     }
 }
 
@@ -79,11 +187,18 @@ class Rectangle extends Shape {
         Point p1 = rectify()[0];
         Point p2 = rectify()[1];
 
-        Graphics2D g2 = (Graphics2D)g;
+        Graphics2D g2 = (Graphics2D) g;
         g2.setColor(color);
         g2.setStroke(new BasicStroke(thickness));
 
-        g2.drawRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+        g2.drawRect(p1.x, p1.y, p2.x - p1.x, p2.y - p1.y);
+    }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+        Point[] points = rectify();
+        return p.x > points[0].x && p.x < points[1].x && p.y > points[0].y && p.y < points[1].y;
     }
 }
 
@@ -102,6 +217,13 @@ class Ellipse extends Shape {
 
         g2.drawOval(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
     }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+        Point[] points = rectify();
+        return p.x > points[0].x && p.x < points[1].x && p.y > points[0].y && p.y < points[1].y;
+    }
 }
 
 class FilledRectangle extends Shape {
@@ -118,6 +240,13 @@ class FilledRectangle extends Shape {
         g2.setStroke(new BasicStroke(thickness));
 
         g2.fillRect(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
+    }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+        Point[] points = rectify();
+        return p.x > points[0].x && p.x < points[1].x && p.y > points[0].y && p.y < points[1].y;
     }
 }
 
@@ -136,6 +265,13 @@ class FilledEllipse extends Shape {
 
         g2.fillOval(p1.x, p1.y, p2.x-p1.x, p2.y-p1.y);
     }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+        Point[] points = rectify();
+        return p.x > points[0].x && p.x < points[1].x && p.y > points[0].y && p.y < points[1].y;
+    }
 }
 
 class Text extends Shape {
@@ -151,11 +287,23 @@ class Text extends Shape {
     }
 
     void Draw(Graphics g) {
-        Graphics2D g2 = (Graphics2D)g;
+        Graphics2D g2 = (Graphics2D) g;
         g2.setColor(color);
         g2.setStroke(new BasicStroke(thickness));
+        g.setFont(new Font("楷体", Font.PLAIN,Math.abs(point1.y-point2.y)/2));
 
         g2.drawString(content, point1.x, point1.y);
+    }
+
+    @Override
+    public boolean isSelected(Point p)
+    {
+//        System.out.println(p.x + " " + p.y);
+//        System.out.println(point1.x + " " + point1.y);
+//        System.out.println(point2.x + " " + point2.y);
+        Point[] points = rectify();
+
+        return p.x >= points[0].x && p.x <= points[1].x && p.y >= points[0].y && p.y <= points[1].y;
     }
 }
 
@@ -164,10 +312,6 @@ class BrokenLine extends Shape {
 
     BrokenLine(Point point1, Point point2, Color color, int thickness, Point[] points) {
         super(point1, point2, color, thickness);
-        this.points = points;
-    }
-
-    void setPoints(Point[] points) {
         this.points = points;
     }
 
@@ -194,21 +338,13 @@ class Polygon extends Shape {
         this.points = points;
     }
 
-    void setPoints(Point[] points) {
-        this.points = points;
-    }
-
-    private void myDrawLine(Point p1, Point p2, Graphics2D g2) {
-        g2.drawLine(p1.x, p1.y, p2.x, p2.y);
-    }
-
     void Draw(Graphics g) {
-        Graphics2D g2 = (Graphics2D)g;
+        Graphics2D g2 = (Graphics2D) g;
         g2.setColor(color);
         g2.setStroke(new BasicStroke(thickness));
 
-        int[] xPoints = new int [points.length];
-        int[] yPoints = new int [points.length];
+        int[] xPoints = new int[points.length];
+        int[] yPoints = new int[points.length];
 
         for (int i = 0; i < points.length; i++) {
             xPoints[i] = points[i].x;

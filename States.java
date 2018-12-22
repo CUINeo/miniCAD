@@ -13,16 +13,6 @@ class Idle implements State {
     }
 }
 
-class Select implements State {
-    public State MouseLeft() {
-        return new Idle();
-    }
-
-    public State MouseRight() {
-        return new Idle();
-    }
-}
-
 class FirstPoint implements State {
     public State MouseLeft() {
         return new SecondPoint();

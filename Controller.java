@@ -5,10 +5,30 @@ import java.io.*;
 import java.util.ArrayList;
 
 class Controller extends JFrame {
+    private Model model;
+    private View view;
+    private State state;
+
+    private String curShape;
+    private Point point1;
+    private Point point2;
+    private int selectedShapeIndex = -1;
+
+    private int prex;
+    private int prey;
+
+    private int pointNum = 0;
+    private int pointCnt = 0;
+    private ArrayList<Point> points = new ArrayList<>();
+
+    private final Color default_color = Color.BLACK;
+    private final int default_thickness = 3;
+
     class drawPanel extends JPanel {
         @Override
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
+
             // Repaint
             view.Repaint(model, g);
         }
@@ -18,20 +38,46 @@ class Controller extends JFrame {
             addMouseListener(new MouseListener() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
+//                    System.out.println(state);
+//                    System.out.println(selectedShapeIndex);
+
                     if (e.getButton() == MouseEvent.BUTTON1) {
                         if (state instanceof Idle) {
                             // Left click, select
+                            if (selectedShapeIndex != -1) {
+                                Shape shape = model.shapes.get(selectedShapeIndex);
+                                if (shape instanceof Text) {
+                                    // Reset Text
+                                    String content = JOptionPane.showInputDialog("Please input your text:");
+                                    ((Text) shape).setContent(content);
 
+                                    repaint();
+                                }
+                            }
 
+                            boolean flag = false;
+                            Point point = new Point(e.getX(), e.getY());
+
+                            for (int i = 0; i < model.shapes.size(); i++) {
+
+                                if (model.shapes.get(i).isSelected(point)) {
+                                    // Shape i is selected
+                                    selectedShapeIndex = i;
+                                    flag = true;
+                                    break;
+                                }
+                            }
+
+                            if (!flag)
+                                selectedShapeIndex = -1;
                         }
 
                         else if (state instanceof TextState) {
                             // Text
                             Point point = new Point(e.getX(), e.getY());
-
                             String content = JOptionPane.showInputDialog("Please input your text:");
 
-                            Text text = new Text(point, new Point(0, 0),
+                            Text text = new Text(point, new Point(e.getX() + 120, e.getY() - 100),
                                     default_color, default_thickness, content);
 
                             model.add(text);
@@ -143,6 +189,7 @@ class Controller extends JFrame {
 
                     if (e.getButton() == MouseEvent.BUTTON3) {
                         // Right click, become Idle
+                        selectedShapeIndex = -1;
                         state = state.MouseRight();
                     }
                 }
@@ -161,6 +208,12 @@ class Controller extends JFrame {
                             Shape shape = getCurShape();
                             model.add(shape);
                             repaint();
+                        }
+
+                        // Dragging shapes
+                        if (state instanceof Idle && selectedShapeIndex != -1) {
+                            prex = e.getX();
+                            prey = e.getY();
                         }
                     }
                 }
@@ -201,6 +254,25 @@ class Controller extends JFrame {
                             modifyCurShape(point2);
                             repaint();
                         }
+
+                        if (state instanceof Idle && selectedShapeIndex != -1) {
+                            // Dragging shapes
+                            int x = e.getX();
+                            int y = e.getY();
+
+                            int x_dis = x - prex;
+                            int y_dis = y - prey;
+
+                            Shape shape = model.shapes.get(selectedShapeIndex);
+                            shape.setPoint1(new Point(point1.x + x_dis, point1.y + y_dis));
+                            shape.setPoint2(new Point(point2.x + x_dis, point2.y + y_dis));
+
+                            model.shapes.remove(selectedShapeIndex);
+                            model.shapes.add(shape);
+                            selectedShapeIndex = model.shapes.indexOf(shape);
+
+                            repaint();
+                        }
                     }
                 }
 
@@ -209,21 +281,6 @@ class Controller extends JFrame {
             });
         }
     }
-
-    private Model model;
-    private View view;
-    private State state;
-
-    private String curShape;
-    private Point point1;
-    private Point point2;
-
-    private int pointNum = 0;
-    private int pointCnt = 0;
-    private ArrayList<Point> points = new ArrayList<>();
-
-    private final Color default_color = Color.BLACK;
-    private final int default_thickness = 3;
 
     Controller(Model model, View view) {
         // Set title
@@ -299,6 +356,56 @@ class Controller extends JFrame {
         add(toolpanel, BorderLayout.EAST);
         add(drawpanel, BorderLayout.CENTER);
 
+        // Add key listener
+        addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                int key = e.getKeyCode();
+
+                if (selectedShapeIndex != -1) {
+                    Shape shape = model.shapes.get(selectedShapeIndex);
+
+                    // A shape is selected
+                    if (key == KeyEvent.VK_UP && shape.thickness > 1) {
+                        // Change thinner
+                        shape.setThickness(shape.thickness - 1);
+                    }
+                    else if (key == KeyEvent.VK_DOWN) {
+                        // Change thicker
+                        shape.setThickness(shape.thickness + 1);
+                    }
+                    else if (key == KeyEvent.VK_BACK_SPACE || key == KeyEvent.VK_DELETE) {
+                        // Delete shape
+                        model.shapes.remove(selectedShapeIndex);
+                        selectedShapeIndex = -1;
+                    }
+                    else if (key == KeyEvent.VK_MINUS) {
+                        // Change smaller
+                        shape.changeBiggerOrSmaller(-1);
+                    }
+                    else if (key == KeyEvent.VK_EQUALS) {
+                        // Change bigger
+                        shape.changeBiggerOrSmaller(1);
+                    }
+
+                    if (selectedShapeIndex != -1) {
+                        // shape not deleted
+                        model.shapes.remove(selectedShapeIndex);
+                        model.add(shape);
+                        selectedShapeIndex = model.shapes.indexOf(shape);
+                    }
+
+                    repaint();
+                }
+            }
+
+            @Override
+            public void keyTyped(KeyEvent e) { }
+
+            @Override
+            public void keyReleased(KeyEvent e) { }
+        });
+
         // Initialize the frame
         setVisible(true);
         setBackground(Color.WHITE);
@@ -369,11 +476,16 @@ class Controller extends JFrame {
 
         // Add Listener
         button.addActionListener(e -> {
-            Color curColor = getBackground();
-
             // Whether a object is selected
-
-
+            if (state instanceof Idle) {
+                if (selectedShapeIndex != -1) {
+                    // Change color
+                    Shape shape = model.shapes.get(selectedShapeIndex);
+                    shape.setColor(color);
+                    model.shapes.set(selectedShapeIndex, shape);
+                    repaint();
+                }
+            }
         });
 
         return button;
