@@ -573,7 +573,7 @@ class Controller extends JFrame {
             }
             catch(IOException | ClassNotFoundException e1) {
                 e1.printStackTrace();
-                JOptionPane.showMessageDialog(null,"Open filed",
+                JOptionPane.showMessageDialog(null,"Open failed",
                         "Error",JOptionPane.ERROR_MESSAGE);
                 return;
             }
@@ -608,7 +608,7 @@ class Controller extends JFrame {
             }
             catch(IOException e1) {
                 e1.printStackTrace();
-                JOptionPane.showMessageDialog(null,"Save filed",
+                JOptionPane.showMessageDialog(null,"Save failed",
                         "Error",JOptionPane.ERROR_MESSAGE);
             }
 
